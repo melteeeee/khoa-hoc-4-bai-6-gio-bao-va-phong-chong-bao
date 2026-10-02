@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover">
+<link rel="icon" href="data:,">
+<title>Mở rộng – Cấu trúc hình thành của một cơn bão | YooBook</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<style>
+/* ============================================================
+   DESIGN SYSTEM v1 — dán nguyên, không sửa biến
+   ============================================================ */
+:root{
+  --brand:#195856; --brand-dark:#0f3f3d; --brand-light:#2f827d; --brand-soft:#e6f0ee;
+  --ink:#10302d; --muted:#5f8b89; --line:#dbe8e5; --bg:#195658; --gold:#a8814a;
+  --stage-mid:#f1f9f7; --stage-bottom:#dcebe7;
+  --r:16px; --r-sm:11px;
+  --sh-1:0 1px 2px rgba(13,42,40,.05);
+  --sh-2:0 2px 6px rgba(13,42,40,.06),0 18px 34px -22px rgba(13,42,40,.45);
+  --sh-3:0 10px 30px -12px rgba(13,42,40,.32);
+  --peek:88px; --safe:env(safe-area-inset-bottom,0px);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0}
+body{
+  font-family:'Roboto',system-ui,-apple-system,Segoe UI,sans-serif;
+  font-size:15px;line-height:1.5;color:var(--ink);background:#195658;
+  overflow:hidden;overscroll-behavior:none;
+  -webkit-tap-highlight-color:transparent;
+}
+button{font-family:inherit}
+.app{height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:#195658}
+
+/* topbar */
+.topbar{
+  display:flex;align-items:center;gap:12px;padding:10px 16px;
+  background:#fff;border-bottom:1px solid var(--line);box-shadow:var(--sh-1);
+  z-index:20;flex:0 0 auto;
+}
+.logoclip{height:27px;display:flex;align-items:center;flex:0 0 auto}
+.logoclip .logo{height:27px;display:block}
+.titles{flex:1;min-width:0}
+.badge{
+  display:inline-block;font-size:11px;font-weight:600;letter-spacing:.02em;
+  color:var(--brand);background:var(--brand-soft);border-radius:99px;
+  padding:2px 9px;margin-bottom:2px;
+}
+.titles h1{margin:0;font-weight:700;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.titles h1.lg{font-size:18px}
+.titles h1.sm{font-size:15px}
+.titles h1.xs{font-size:13px}
+.tb-right{display:flex;gap:8px;flex:0 0 auto}
+.tb-btn{
+  width:38px;height:38px;border-radius:11px;border:1px solid var(--line);background:#fff;
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--brand-dark);
+  transition:background .15s,border-color .15s;
+}
+.tb-btn:hover{background:var(--brand-soft);border-color:var(--brand-light)}
+.tb-btn svg{width:18px;height:18px}
+
+/* main grid */
+.main{
+  flex:1;min-height:0;display:flex;flex-direction:column;
+  padding:14px;overflow:hidden;background:#195658;
+}
+.stagecol{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0}
+.frame{
+  background:#fff;border-radius:var(--r);box-shadow:var(--sh-2);
+  display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;
+}
+.steps{
+  display:flex;gap:8px;padding:10px 12px;overflow-x:auto;overflow-y:hidden;
+  border-top:1px solid var(--line);scrollbar-width:none;flex:0 0 auto;
+}
+.steps::-webkit-scrollbar{display:none}
+.step{
+  flex:0 0 auto;display:flex;align-items:center;gap:7px;padding:7px 13px 7px 8px;
+  border-radius:99px;border:1px solid var(--line);background:#fff;cursor:pointer;
+  font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;
+  transition:background .15s,border-color .15s,color .15s,opacity .2s;
+  position:relative;
+}
+.step b{
+  width:20px;height:20px;border-radius:99px;background:var(--brand-soft);color:var(--brand-dark);
+  font-size:11px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;
+}
+.step:hover{border-color:var(--brand-light)}
+.step[aria-pressed="true"]{background:var(--brand);border-color:var(--brand);color:#fff}
+.step[aria-pressed="true"] b{background:rgba(255,255,255,.25);color:#fff}
+.step.done b{background:var(--brand);color:#fff}
+.step.is-locked{opacity:.42;filter:saturate(.35);pointer-events:none}
+.step.is-locked::after{content:"Khóa";margin-left:2px;font-size:11px;color:var(--muted)}
+@keyframes unlockPulse{0%,100%{box-shadow:0 0 0 0 rgba(25,88,86,.35)}50%{box-shadow:0 0 0 6px rgba(25,88,86,0)}}
+.step.just-unlocked{animation:unlockPulse 1.2s ease 2}
+.stage{
+  position:relative;flex:1;min-height:0;
+  background:#195658;
+  touch-action:none;cursor:grab;overflow:hidden;
+}
+.stage.dragging{cursor:grabbing}
+.stage canvas{display:block;width:100%;height:100%}
+.vignette{position:absolute;inset:0;z-index:1;pointer-events:none;
+  box-shadow:inset 0 0 90px rgba(15,63,61,.10);}
+.tag3d,.stage-hint{
+  position:absolute;left:12px;bottom:12px;z-index:2;
+  background:rgba(255,255,255,.88);backdrop-filter:blur(8px) saturate(1.3);
+  border-radius:99px;padding:7px 13px;font-size:12.5px;font-weight:500;color:var(--brand-dark);
+  box-shadow:var(--sh-1);display:flex;align-items:center;gap:6px;max-width:min(92vw,560px);text-align:center;
+}
+.stage-tools{position:absolute;left:12px;top:12px;z-index:3;display:flex;gap:8px;flex-wrap:wrap}
+.ghost{
+  background:rgba(255,255,255,.88);backdrop-filter:blur(8px) saturate(1.3);border:1px solid var(--line);
+  border-radius:var(--r-sm);padding:7px 11px;font-size:12.5px;font-weight:500;color:var(--brand-dark);
+  cursor:pointer;display:flex;align-items:center;gap:6px;box-shadow:var(--sh-1);
+}
+.ghost[aria-pressed="true"]{background:var(--brand);color:#fff;border-color:var(--brand)}
+@keyframes narrationPulse{0%,100%{box-shadow:0 0 0 0 rgba(25,88,86,.4)}50%{box-shadow:0 0 0 7px rgba(25,88,86,0)}}
+.ghost.needs-start{animation:narrationPulse 1.4s ease infinite}
+.hud{display:none !important}
+.hud-label{font-size:10.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.hud-num{font-size:27px;font-weight:700;color:var(--brand-dark);line-height:1.2;margin:2px 0 8px}
+.hud-bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-bottom:8px}
+.hud-bar>span{display:block;height:100%;background:linear-gradient(90deg,var(--brand),var(--brand-light));border-radius:99px;transition:width .3s}
+.hud .hits{font-size:11.5px;color:var(--muted);line-height:1.4}
+.spot{position:absolute;z-index:4;transform:translate(-50%,-50%);display:flex;align-items:center;gap:6px;pointer-events:auto;cursor:pointer}
+.spot .dot{width:14px;height:14px;border-radius:99px;background:var(--gold);border:2px solid #fff;box-shadow:0 0 0 4px rgba(168,129,74,.22);animation:pulseDot 1.8s ease infinite}
+@keyframes pulseDot{0%,100%{box-shadow:0 0 0 4px rgba(168,129,74,.22)}50%{box-shadow:0 0 0 8px rgba(168,129,74,.05)}}
+.spot .lbl{background:linear-gradient(135deg,var(--brand),var(--brand-light));color:#fff;font-size:11.5px;font-weight:600;padding:5px 10px;border-radius:99px;white-space:nowrap;box-shadow:var(--sh-1)}
+.spot.zoomed .lbl{background:linear-gradient(135deg,#6a7f7d,#8da7a4)}
+.infoPop{
+  position:absolute;left:12px;bottom:52px;z-index:6;max-width:min(320px,86%);
+  background:rgba(255,255,255,.94);backdrop-filter:blur(12px) saturate(1.3);
+  border-radius:var(--r-sm);padding:14px 16px;box-shadow:var(--sh-3);
+}
+.infoPop h4{margin:0 0 4px;font-size:14px;color:var(--brand-dark)}
+.infoPop p{margin:0;font-size:12.5px;color:var(--muted);line-height:1.5}
+.infoPop .x{position:absolute;top:8px;right:8px;width:22px;height:22px;border-radius:99px;border:none;background:var(--brand-soft);color:var(--brand-dark);cursor:pointer;font-size:13px;line-height:1}
+.fallback,.loading{
+  position:absolute;inset:0;z-index:8;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  background:linear-gradient(180deg,#fff,var(--stage-mid));text-align:center;padding:20px;
+}
+.fallback{z-index:7}
+.spinner{width:34px;height:34px;border-radius:99px;border:3px solid var(--line);border-top-color:var(--brand);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p,.fallback p{margin:0;color:var(--muted);font-size:13px}
+.quizpane,.rememberpane{
+  position:absolute;inset:0;z-index:9;display:flex;align-items:center;justify-content:center;padding:22px;
+  background:rgba(234,243,241,.97);backdrop-filter:blur(6px);opacity:0;pointer-events:none;transition:opacity .25s;
+  overflow-y:auto;
+}
+.quizpane.show,.rememberpane.show{opacity:1;pointer-events:auto}
+.gatepane{
+  position:absolute;inset:0;z-index:12;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:rgba(16,48,45,.55);opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.gatepane.show{opacity:1;pointer-events:auto}
+.gate-card{
+  background:#fff;border-radius:var(--r);box-shadow:var(--sh-3);padding:22px;max-width:420px;width:100%;
+}
+.gate-card h3{margin:0 0 10px;font-size:16px;color:var(--brand-dark)}
+.gate-opt{
+  display:block;width:100%;text-align:left;padding:11px 14px;margin-top:9px;border-radius:var(--r-sm);
+  border:1px solid var(--line);background:#fff;cursor:pointer;font-size:13.5px;color:var(--ink);
+  transition:border-color .15s,background .15s;
+}
+.gate-opt:hover{border-color:var(--brand-light)}
+.gate-opt.ok{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-dark);font-weight:600}
+.gate-opt.no{border-color:#c96a4f;background:#fbeae4;color:#a54527}
+.gate-fb{margin-top:12px;font-size:13px;font-weight:600}
+.gate-fb.ok{color:var(--brand-dark)}
+.gate-fb.no{color:#a54527}
+.gate-next{
+  margin-top:14px;width:100%;padding:11px;border-radius:var(--r-sm);border:none;cursor:pointer;
+  background:linear-gradient(135deg,var(--brand),var(--brand-light));color:#fff;font-weight:600;font-size:13.5px;
+  display:none;
+}
+.gate-next.show{display:block}
+
+.stage.quizmode .stage-tools,.stage.quizmode .obsbar,.stage.memorymode .obsbar,.stage.quizmode .hud,.stage.quizmode .stage-hint,.stage.quizmode .spot,.stage.quizmode .infoPop,
+.stage.memorymode .stage-tools,.stage.memorymode .hud,.stage.memorymode .stage-hint,.stage.memorymode .spot,.stage.memorymode .infoPop{
+  opacity:0;pointer-events:none;
+}
+
+/* nút dùng chung cho các overlay (gate / ghi nhớ / ôn tập) */
+.btn{width:100%;padding:11px;border-radius:var(--r-sm);font-weight:600;font-size:13.5px;cursor:pointer;border:1px solid transparent;margin-top:8px;
+  display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand-light));color:#fff}
+.btn.outline{background:#fff;border-color:var(--line);color:var(--brand-dark)}
+
+/* memory flow — dạng hàng dọc, ưu tiên responsive mobile */
+.memory-card{max-width:840px !important;padding:18px 22px !important}
+.memory-wheel{position:relative;width:min(720px,92vw);height:auto;min-height:0;margin:12px auto 14px;display:flex;flex-direction:column;gap:10px}
+.memory-ring,.ring-arrow{display:none !important}
+.memory-center{position:relative;left:auto;top:auto;transform:none;width:100%;height:min(380px,42vh);min-height:260px;border-radius:22px;overflow:hidden;background:#195658;border:1px solid var(--line);box-shadow:var(--sh-3);z-index:2;margin-bottom:4px}
+.memory-center::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 38px rgba(15,63,61,.06)}
+.memory-center model-viewer{width:100%;height:100%;background:#195658;--poster-color:#195658}
+.memory-center-badge{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);z-index:3;max-width:92%;padding:7px 13px;border-radius:99px;background:rgba(255,255,255,.92);backdrop-filter:blur(8px);font-size:12px;font-weight:700;color:var(--brand-dark);text-align:center;box-shadow:var(--sh-1);pointer-events:none}
+.memory-node{position:relative !important;left:auto !important;right:auto !important;top:auto !important;bottom:auto !important;transform:none !important;z-index:4;width:100%;min-height:58px;padding:10px 12px;border:1px solid var(--line);border-radius:14px;background:rgba(255,255,255,.98);box-shadow:var(--sh-1);cursor:pointer;color:var(--ink);font-size:12.5px;font-weight:600;line-height:1.3;text-align:left;display:flex;gap:10px;align-items:center;transition:.18s}
+.memory-node::after{content:"↓";margin-left:auto;color:var(--brand-light);font-size:17px;font-weight:700;opacity:.75}
+.memory-node.n4::after{content:"✓"}
+.memory-node:hover,.memory-node.active{border-color:var(--brand);background:var(--brand-soft);transform:none !important;box-shadow:var(--sh-2)}
+.memory-node b{width:28px;height:28px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;flex:0 0 auto;font-size:11px}
+.memory-caption{text-align:center;font-size:12px;color:var(--muted);margin:4px 0 6px}
+.memory-note{background:#fbf6ec;border-left:3px solid var(--gold);border-radius:0 var(--r-sm) var(--r-sm) 0;padding:10px 14px;font-size:12.5px;color:#6b5836;margin-top:10px;line-height:1.5}
+
+/* quiz — dùng model 3D tương ứng với hàm ý câu hỏi */
+.qcard{background:#fff;border-radius:var(--r);box-shadow:var(--sh-3);padding:22px;max-width:700px;width:100%}
+.qcard .qn{font-size:11.5px;font-weight:700;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+.quiz-model-wrap{height:min(280px,34vh);margin:10px 0 12px;border-radius:var(--r-sm);overflow:hidden;border:1px solid var(--line);background:#195658;position:relative}
+.quiz-model-wrap model-viewer{display:block;width:100%;height:100%;background:#195658;--poster-color:#195658}
+.quiz-model-cap{position:absolute;left:10px;right:10px;bottom:9px;padding:6px 10px;border-radius:99px;background:rgba(255,255,255,.9);backdrop-filter:blur(8px);font-size:11.5px;color:var(--brand-dark);text-align:center;box-shadow:var(--sh-1);pointer-events:none}
+.qcard .qtext{font-size:16px;font-weight:700;color:var(--ink);margin:8px 0 14px}
+.opt{display:block;width:100%;text-align:left;padding:11px 14px;margin-bottom:9px;border-radius:var(--r-sm);
+  border:1px solid var(--line);background:#fff;cursor:pointer;font-size:13.5px;color:var(--ink);transition:.15s}
+.opt.ok{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-dark);font-weight:600}
+.opt.no{border-color:#c96a4f;background:#fbeae4;color:#a54527}
+.fb{font-size:13px;margin-top:8px;padding:11px 13px;border-radius:var(--r-sm);background:var(--brand-soft);color:var(--brand-dark);display:none}
+.fb.show{display:block}
+.qactions{display:flex;gap:10px;margin-top:16px}
+.qactions .btn{margin-top:0}
+
+/* nút điều hướng trước / sau nổi trên khung 3D */
+.stage-nav{position:absolute;top:50%;z-index:5;transform:translateY(-50%);
+  width:38px;height:38px;border-radius:99px;border:1px solid var(--line);
+  background:rgba(255,255,255,.88);backdrop-filter:blur(8px) saturate(1.3);
+  display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--brand-dark);
+  box-shadow:var(--sh-1);font-size:16px;transition:opacity .15s,background .15s;
+}
+.stage-nav:hover{background:var(--brand-soft)}
+.stage-nav.prev{left:12px}
+.stage-nav.next{right:12px}
+.stage-nav[disabled]{opacity:.3;pointer-events:none}
+.stage.quizmode .stage-nav,.stage.memorymode .stage-nav{opacity:0;pointer-events:none}
+
+/* ============================================================
+   BÀI RIÊNG — Thí nghiệm nến cháy (Khoa học 4, Bài 6)
+   ============================================================ */
+.intro-loader{
+  position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;
+  background:#195658;
+  padding:18px;
+}
+.intro-loader__inner{position:relative;z-index:1;width:100%;max-width:920px;display:flex;flex-direction:column;align-items:center;gap:16px;text-align:center}
+.intro-card{
+  width:min(92vw,980px);background:transparent;backdrop-filter:none;border-radius:0;
+  padding:8px 12px 12px;box-shadow:none;text-align:center;
+}
+.intro-kicker{font-size:12px;font-weight:700;letter-spacing:.20em;text-transform:uppercase;color:rgba(248,252,252,.92)}
+.intro-card h1{font-size:clamp(32px,5vw,66px);margin:10px 0 12px;color:#fff;line-height:1.08;font-weight:800;text-shadow:0 4px 18px rgba(0,0,0,.26)}
+.intro-sub{max-width:720px;margin:0 auto 22px;font-size:clamp(13px,1.8vw,22px);color:rgba(244,249,249,.96);line-height:1.72;text-shadow:0 2px 10px rgba(0,0,0,.22)}
+.intro-explore{
+  width:min(280px,88vw);padding:14px 18px;border-radius:999px;border:1px solid rgba(255,255,255,.16);cursor:pointer;
+  background:rgba(21,92,88,.76);color:#fff;font-weight:700;font-size:15px;letter-spacing:.02em;
+  visibility:hidden;pointer-events:none;box-shadow:0 16px 42px -20px rgba(0,0,0,.6);
+  animation:revealBtn .1s linear 2s forwards;
+}
+.intro-explore:hover{background:rgba(21,92,88,.9)}
+@keyframes revealBtn{to{visibility:visible;pointer-events:auto}}
+.intro-progress{height:4px;border-radius:99px;background:rgba(255,255,255,.28);overflow:hidden;margin:18px auto 0;max-width:430px}
+.intro-progress span{display:block;height:100%;width:0%;background:#d7e779;animation:introProg 2s linear forwards}
+@keyframes introProg{to{width:100%}}
+.intro-meta{display:flex;justify-content:space-between;align-items:center;gap:16px;max-width:430px;margin:12px auto 0;font-size:12px;color:rgba(255,255,255,.96)}
+.intro-status{display:flex;align-items:center;gap:7px}
+.intro-ready-dot{width:8px;height:8px;border-radius:99px;background:#d7e779;flex:0 0 auto;box-shadow:0 0 0 4px rgba(215,231,121,.18)}
+.intro-status.model-ready .intro-ready-dot{background:#9ff5d7;box-shadow:0 0 0 4px rgba(159,245,215,.16)}
+.intro-status.load-error .intro-ready-dot{background:#ffad8e;box-shadow:0 0 0 4px rgba(255,173,142,.16)}
+.intro-credit{color:rgba(255,255,255,.88);font-size:12px;text-shadow:0 2px 8px rgba(0,0,0,.24)}
+
+.formula-line{
+  font-size:15px;font-weight:700;text-align:center;margin:8px 0 14px;
+  background:linear-gradient(135deg,var(--brand),var(--brand-light));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.lead{border-left:3px solid var(--brand);padding-left:12px;font-size:13px;color:var(--muted);margin-bottom:6px;line-height:1.6}
+
+@media (max-width:920px){
+  .main{padding:10px;gap:10px}
+  .hud{width:170px;padding:9px 11px}
+  .hud-num{font-size:21px}
+  .stage-nav{width:34px;height:34px;font-size:14px}
+}
+@media (max-width:620px){
+  .intro-loader{padding:20px 14px}
+  .intro-card h1{font-size:42px}
+  .intro-sub{font-size:14px;line-height:1.65}
+  .intro-meta{flex-direction:column;gap:8px}
+  .memory-card{padding:12px 10px !important}
+  .memory-wheel{width:100%;gap:8px;margin-top:8px}
+  .memory-center{height:230px;min-height:210px;border-radius:16px;margin-bottom:2px}
+  .memory-center-badge{font-size:10.5px;padding:6px 9px;bottom:7px;max-width:94%}
+  .memory-node{min-height:52px;font-size:11px;padding:8px 9px;border-radius:12px;gap:8px}
+  .memory-node b{width:23px;height:23px;font-size:10px}
+  .memory-node::after{font-size:15px}
+  .memory-caption{font-size:10.5px;line-height:1.45}
+  .memory-note{font-size:11.5px;padding:9px 10px;margin-top:7px}
+  .quiz-model-wrap{height:210px}
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important;transition-duration:.01ms !important}
+}
+.titles h1.sm,.titles h1.xs{display:none}
+
+/* --- Kết luận (bước 4) --- */
+.concl{position:absolute;left:50%;bottom:16px;transform:translateX(-50%) translateY(10px);max-width:min(680px,92%);background:rgba(11,59,63,.86);border:1px solid rgba(159,245,215,.35);border-radius:14px;padding:10px 16px;color:#eaf7f6;font-size:13.5px;line-height:1.55;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);box-shadow:0 12px 34px rgba(0,0,0,.35);opacity:0;pointer-events:none;transition:opacity .5s ease,transform .5s ease;z-index:6;text-align:center}
+.concl.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.concl b{color:#9ff5d7}
+/* --- Câu hỏi quan sát (hiển thị trong suốt mỗi bước) --- */
+.obsbar{position:absolute;left:12px;top:56px;z-index:3;max-width:min(430px,62%);background:rgba(11,59,63,.84);backdrop-filter:blur(8px);border:1px solid rgba(159,245,215,.32);border-radius:12px;padding:9px 13px;color:#eaf7f6;font-size:12.5px;line-height:1.5;box-shadow:var(--sh-1);pointer-events:none;transition:opacity .25s}
+.obsbar .obs-t{display:block;font-size:10.5px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:#9ff5d7;margin-bottom:3px}
+.obsbar .obs-q{display:block}
+.obsbar .obs-q+.obs-q{margin-top:3px}
+.setuptag{position:absolute;z-index:4;transform:translate(-50%,0);pointer-events:none;background:rgba(255,255,255,.9);color:var(--brand-dark);font-size:12px;font-weight:700;padding:5px 11px;border-radius:99px;box-shadow:var(--sh-1);white-space:nowrap}
+@media (max-width:640px){.setuptag{font-size:10.5px;padding:4px 8px}}
+@media (max-width:640px){.obsbar{font-size:11.5px;padding:7px 10px;max-width:66%;top:50px}}
+@media (max-width:640px){.concl{font-size:12.5px;bottom:10px;padding:8px 12px}}
+/* --- Hỏi – Đáp tương tác sau mỗi bước --- */
+.askpane{
+  position:absolute;inset:0;z-index:11;display:flex;align-items:center;justify-content:center;padding:20px;
+  background:rgba(16,48,45,.62);opacity:0;pointer-events:none;transition:opacity .2s;
+}
+.askpane.show{opacity:1;pointer-events:auto}
+.ask-card{background:#fff;border-radius:var(--r);box-shadow:var(--sh-3);padding:22px;max-width:460px;width:100%;max-height:88%;overflow-y:auto}
+.ask-qn{font-size:11.5px;font-weight:700;letter-spacing:.10em;text-transform:uppercase;color:var(--brand-light);margin-bottom:6px}
+.ask-card h3{margin:0 0 6px;font-size:15.5px;line-height:1.5;color:var(--brand-dark)}
+.ask-opt{display:block;width:100%;text-align:left;padding:11px 14px;margin-top:9px;border-radius:var(--r-sm);border:1px solid var(--line);background:#fff;cursor:pointer;font-size:13.5px;color:var(--ink);transition:border-color .15s,background .15s}
+.ask-opt:hover:not(:disabled){border-color:var(--brand-light)}
+.ask-opt.ok{border-color:var(--brand);background:var(--brand-soft);color:var(--brand-dark);font-weight:600}
+.ask-opt.no{border-color:#c96a4f;background:#fbeae4;color:#a54527}
+.ask-fb{margin-top:12px;font-size:13px;line-height:1.55;font-weight:600;display:none}
+.ask-fb.show{display:block}
+.ask-fb.ok{color:var(--brand-dark)}
+.ask-fb.no{color:#a54527}
+/* --- Chỉ dẫn bấm bình (thí nghiệm a) --- */
+.jarhint{position:absolute;z-index:5;transform:translate(-50%,-100%);display:flex;align-items:center;gap:6px;pointer-events:auto;cursor:pointer;background:linear-gradient(135deg,var(--brand),var(--brand-light));color:#fff;font-size:12px;font-weight:700;padding:7px 13px;border-radius:99px;white-space:nowrap;box-shadow:0 8px 20px rgba(0,0,0,.3);border:2px solid rgba(255,255,255,.85);animation:jarHintPulse 1.4s ease infinite}
+@keyframes jarHintPulse{0%,100%{box-shadow:0 0 0 0 rgba(159,245,215,.55)}50%{box-shadow:0 0 0 9px rgba(159,245,215,0)}}
+@media (max-width:640px){.jarhint{font-size:11px;padding:6px 10px}}
+/* hộp kết luận: to, nằm giữa màn hình */
+.concl{left:50%;top:50%;bottom:auto;transform:translate(-50%,-46%);width:min(640px,88%);max-width:none;padding:26px 32px;font-size:21px;line-height:1.6;border-radius:20px;border-width:2px}
+.concl.show{transform:translate(-50%,-50%)}
+@media (max-width:640px){.concl{font-size:16px;padding:18px 20px;bottom:auto}}
+/* --- Khởi động: khung video --- */
+.vidwrap{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:#0b2f2e}
+.vidwrap video{width:100%;height:100%;object-fit:contain;background:#0b2f2e;display:block}
+.vidwrap iframe{width:100%;height:100%;border:0;display:block;background:#000}
+.srcnote{margin-left:auto;align-self:center;font-size:12.5px;color:var(--muted);white-space:nowrap;padding-left:12px}
+.srcnote a{color:var(--brand);font-weight:700;text-decoration:underline}
+.srcnote b{color:var(--ink)}
+@media (max-width:640px){.srcnote{font-size:11px}}
+.stage{touch-action:auto;cursor:default}
+.stage-nav{top:auto;bottom:70px;transform:none}
+#btnOverview,#btnAutorotate{display:none}
+</style>
+</head>
+<body>
+
+<div class="intro-loader" id="introLoader" aria-live="polite">
+  <div class="intro-loader__inner">
+    <section class="intro-card" aria-labelledby="introTitle">
+      <div class="intro-kicker">Khoa học 4 · Bài 6 · Gió, bão và phòng chống bão</div>
+      <h1 id="introTitle">Mở rộng</h1>
+      <p class="intro-sub">Xem video để biết thêm: một cơn bão hình thành như thế nào và có cấu trúc ra sao? (Nguồn: VTV24)</p>
+      <button class="intro-explore" id="btnExplore" type="button">Bắt đầu khám phá</button>
+      <div class="intro-progress" aria-hidden="true"><span></span></div>
+      <div class="intro-meta">
+        <div class="intro-status model-ready" id="introStatus"><span class="intro-ready-dot"></span>Sẵn sàng</div>
+        <div class="intro-time" id="introTime">Khoảng 2 giây</div>
+      </div>
+    </section>
+    <div class="intro-credit">Được phát triển bởi <strong>YooBook</strong></div>
+  </div>
+</div>
+<script>
+(function(){
+  window.setTimeout(function(){
+    var intro=document.getElementById('introLoader');
+    var btn=document.getElementById('btnExplore');
+    if(intro) intro.classList.add('time-ready');
+    if(btn){btn.style.visibility='visible';btn.style.pointerEvents='auto';}
+  },2000);
+})();
+</script>
+
+<div class="app">
+  <header class="topbar">
+    <div class="logoclip"><img class="logo" alt="YooBook" src="data:image/png;base64,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
+"></div>
+    <div class="titles">
+      <div class="badge">Khoa học 4 · Bài 6</div>
+      <h1 class="lg" id="titleLg">Mở rộng – Cấu trúc hình thành của một cơn bão</h1>
+    </div>
+    <div class="tb-right">
+      <button class="tb-btn" id="btnFullscreen" aria-label="Toàn màn hình" type="button">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      </button>
+    </div>
+  </header>
+  <div class="main">
+    <div class="stagecol">
+      <div class="frame">
+        <div class="stage" id="stage">
+          <div class="vidwrap" id="vidwrap"></div>
+          <div class="vignette" aria-hidden="true"></div>
+          <div class="stage-tools" id="stageTools">
+            <button class="ghost" id="btnReplay" type="button" aria-label="Xem lại video">↺ <span class="lbl-text">Xem lại video</span></button>
+          </div>
+          <div class="obsbar" id="obsBar" aria-live="polite"></div>
+          <div class="stage-hint" id="stageHint" style="display:none"></div>
+          </div>
+        <div class="steps" id="stepsBar" role="tablist" aria-label="Các bước học"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+'use strict';
+(function(){
+const VIDEO_ID='KbFBRwg-CzE';
+const VIDEO_URL='https://www.youtube.com/watch?v='+VIDEO_ID;
+const LESSON=[
+  {labelLong:"Xem video", title:"Xem video: Cấu trúc hình thành của một cơn bão",
+   obs:["Hãy xem video và cho biết: một cơn bão hình thành như thế nào và có cấu trúc ra sao?"]}
+];
+const $=id=>document.getElementById(id);
+const stepsBar=$('stepsBar'), wrap=$('vidwrap');
+let lessonEntered=false;
+
+function buildSteps(){
+  stepsBar.innerHTML='';
+  LESSON.forEach((s,i)=>{
+    const b=document.createElement('button');
+    b.className='step'; b.type='button'; b.setAttribute('role','tab');
+    b.setAttribute('aria-pressed','true');
+    b.innerHTML='<b>'+(i+1)+'</b><span class="lbl-text">'+s.labelLong+'</span>';
+    stepsBar.appendChild(b);
+  });
+  const src=document.createElement('div');
+  src.className='srcnote';
+  src.innerHTML='<b>Nguồn video:</b> “Có thể bạn chưa biết: Cấu trúc hình thành của một cơn bão” – VTV24 (YouTube) · <a href="'+VIDEO_URL+'" target="_blank" rel="noopener">Mở trên YouTube</a>';
+  stepsBar.appendChild(src);
+}
+function updateObsBar(){
+  const bar=$('obsBar');
+  bar.innerHTML='<span class="obs-t">🔎 Quan sát</span>'+LESSON[0].obs.map(t=>'<span class="obs-q">'+t+'</span>').join('');
+  bar.style.display='block';
+}
+function loadVideo(autoplay){
+  wrap.innerHTML='';
+  const f=document.createElement('iframe');
+  f.src='https://www.youtube.com/embed/'+VIDEO_ID+'?rel=0&modestbranding=1&playsinline=1'+(autoplay?'&autoplay=1':'');
+  f.title='Cấu trúc hình thành của một cơn bão – VTV24';
+  f.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+  f.allowFullscreen=true;
+  f.referrerPolicy='strict-origin-when-cross-origin';
+  wrap.appendChild(f);
+}
+$('btnReplay').addEventListener('click',()=>{ if(lessonEntered) loadVideo(true); });
+$('btnFullscreen').addEventListener('click',()=>{
+  if(!document.fullscreenElement) document.documentElement.requestFullscreen?.().catch(()=>{});
+  else document.exitFullscreen?.();
+});
+function enterLesson(){
+  if(lessonEntered) return;
+  lessonEntered=true;
+  const intro=$('introLoader');
+  intro.style.transition='opacity .4s ease'; intro.style.opacity='0';
+  setTimeout(()=>{ intro.style.display='none'; },420);
+  buildSteps(); updateObsBar(); loadVideo(false);
+}
+$('btnExplore').addEventListener('click',enterLesson);
+$('btnExplore').addEventListener('touchend',e=>{ e.preventDefault(); enterLesson(); });
+})();
+</script>
+</body>
+</html>
